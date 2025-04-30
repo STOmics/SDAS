@@ -1,5 +1,5 @@
-# SDAS: Stereo-seq Data Analysis Solution
-SDAS software is a comprehensive bioinformatics toolkit designed for the analysis of Stereo-seq transcriptomic data, covering all key steps in data interpretation.
+SDAS: Stereo-seq Data Analysis Solution
+SDAS software is a comprehensive bioinformatics toolkit designed for the analysis of Stereo-seq transcriptomic data and scRNA-seq data, covering all key steps in data interpretation.
 ## Features
 9 Functional Modules with 14 Algorithms
   
@@ -14,10 +14,10 @@ SDAS software is a comprehensive bioinformatics toolkit designed for the analysi
 | Spatially co-expressed genes    | hotspot                 | python 3.10          | nest-analysis 1.0.4           |
 |                                 | nest                    | python 3.10          | hotspotsc 1.1.1               |
 | DEG                             | scanpy                  | python 3.10          | scanpy 1.10.4                 |
-| Gene set enrichment analysis    | gsea                    | python 3.10          | gseapy 1.1.5             |
-|                                 | enrichr                 | python 3.10          | gseapy 1.1.5                  |
-|                                 | prerank                 | python 3.10          | gseapy 1.1.5                              |
-|                                 | gsva                    | python 3.10          | gseapy 1.1.5                             |
+| Gene set enrichment analysis    | gsea                    | python 3.10          | gseapy 1.1.4             |
+|                                 | enrichr                 | python 3.10          | gseapy 1.1.4                  |
+|                                 | prerank                 | python 3.10          | gseapy 1.1.4                              |
+|                                 | gsva                    | python 3.10          | gseapy 1.1.4                             |
 | Cell-cell communication analysis| cellchat v2             | R 4.3.3              | CellChat 2.1.2                |
 | Trajectory analysis             | monocle3                | R 4.3.3              | monocle3 1.3.1                |
 ## Inputs
@@ -33,7 +33,7 @@ The SDAS software package is unpacked and installed on a Linux system. The compu
 - 200G free disk space or higher  
 - 64-bit CentOS/RedHat 7.8 or Ubuntu 20.04  
 ## Software Download
-BGI Cloud Disk: https://bgipan.genomics.cn/#/link/29ateK2tAQYXGhetPYk7  code: vERA  
+BGI Cloud Disk: https://bgipan.genomics.cn/#/link/G1cdAEFqMFuYfYOK9Iow  code:xahe  
 GitHub:  
 ```bash
 git clone https://github.com/STOmics/SDAS.git
@@ -41,8 +41,8 @@ git clone https://github.com/STOmics/SDAS.git
 Note: The repository does not include .tar.gz file or test data.
 ## Unpack
 ```bash
-tar -xzf SDAS_beta.tar.gz
-cd SDAS_beta/anno
+tar -xzf SDAS_beta.2.tar.gz
+cd SDAS_beta_v2504/anno
 ./conda-unpack
 ```
 ## Test run
@@ -64,9 +64,9 @@ SDAS functions:
 
 ## SDAS Material Overview
 <pre>
-├── SDAS_beta.tar.gz
+├── SDAS_beta.2.tar.gz
 ├── Documents
-│   └── SDAS_beta_user_manual.pdf
+│   └── SDAS_beta.2_user_manual.pdf
 ├── Scripts
 │   ├── pipelines
 │   └── quick_start
@@ -78,5 +78,6 @@ SDAS functions:
      ├── Application_test_data
      │   ├── single_cell.h5ad
      │   └── stereo_bin100.h5ad
-     └── NC2024_paper_bioinformatics_analysis_withSDAS.pdf
+     ├── NC2024_paper_bioinformatics_analysis_withSDAS_beta.2.pdf
+     └── NC2024_paper_bioinformatics_analysis_withSDAS_beta.2.pptx
 </pre>
