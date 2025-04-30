@@ -18,9 +18,7 @@ def _readconf(conf):
 
 def outshell(sh_file, sh_code, cpu, mem):
     outf =  open(sh_file,'w')
-    outf.write(sh_code + '\n')
-    outf.write('echo "All finished" 1>&2 && \\\n')
-    outf.write(f'echo "All finished" > {sh_file}.log\n')
+    outf.write(f'{sh_code} > {sh_file}.log 2>> {sh_file}.e\n')
     outf.close()
     sh_flag = f'{sh_file}:cpu:{cpu}:mem:{mem}G'
     return sh_flag
@@ -34,14 +32,16 @@ def _h5ad(sdas_conf, outdir):
     sh_code = ''
     h5ad_files = sdas_conf['h5ad_files'].split(';')
     if len(h5ad_files) == 1:
-        sh_code = f'ln -sf {h5ad_files[0]} {outdir}/input_file/result/infile.h5ad && \\'
-        result_file = f'{outdir}/input_file/result/infile.h5ad'
+        filename = os.path.basename(h5ad_files[0])
+        #filename = re.sub(r'.h5ad$','',filename)
+        sh_code = f'ln -sf {h5ad_files[0]} {outdir}/input_file/result'
+        result_file = f'{outdir}/input_file/result/{filename}'
     else:
         h5ad_csv = open(f'{outdir}/input_file/result/samples.csv','w')
         h5ad_csv.write('\n'.join(h5ad_files))
         h5ad_csv.close()
-        sh_code = f'{sdas_conf["SDAS_software"]} dataProcess input2h5ad -i {outdir}/input_file/result/samples.csv --mode multi -o {outdir}/input_file/result && \\'
-        result_file = f'{outdir}/input_file/result/combine_standard.h5ad'
+        sh_code = f'{sdas_conf["SDAS_software"]} dataProcess mergeAdata -i {outdir}/input_file/result/samples.csv -o {outdir}/input_file/result'
+        result_file = f'{outdir}/input_file/result/combine.h5ad'
         cpu = 3
         mem = 10
         
@@ -73,7 +73,7 @@ def _coexpress(input_file, sdas_conf, outdir):
                 sh_code += f'--{pras[1]} {sdas_conf[p]} '
             if p == 'coexpress_n_cpus':
                 cpu = sdas_conf['coexpress_n_cpus']
-    sh_code += f'-o {outdir}/coexpress/result && \\'
+    sh_code += f'-o {outdir}/coexpress/result'
     sh_flag = outshell(coexp_sh, sh_code, cpu, mem)
     shell_list = []
     shell_list.append(sh_flag)
@@ -99,10 +99,14 @@ def _cellannotation(input_file, sdas_conf, outdir):
         if p.startswith('cellanno_') or p.startswith(f'{method}_'):
             if p != 'cellanno_method':
                 pras = p.split('_',1)
-                sh_code += f'--{pras[1]} {sdas_conf[p]} '
+                if p == 'spotlight_norm_sc' or p == 'spotlight_norm_sp':
+                    if sdas_conf[p].upper() != 'FALSE':
+                        sh_code += f'--{pras[1]} '
+                else:
+                    sh_code += f'--{pras[1]} {sdas_conf[p]} '
             if p == 'cell2location_n_threads':
                 cpu = sdas_conf['cell2location_n_threads']
-    sh_code += f'-o {outdir}/cellAnnotation/result && \\'
+    sh_code += f'-o {outdir}/cellAnnotation/result'
     sh_flag = outshell(annot_sh, sh_code, cpu, mem)
     shell_list = []
     shell_list.append(sh_flag)
@@ -130,7 +134,7 @@ def _spatialDomain(input_file, sdas_conf, outdir):
             if p != 'spatialDomain_method':
                 pras = p.split('_',1)
                 sh_code += f'--{pras[1]} {sdas_conf[p]} '
-    sh_code += f'-o {outdir}/spatialDomain/result && \\'
+    sh_code += f'-o {outdir}/spatialDomain/result'
     sh_flag = outshell(domain_sh, sh_code, cpu, mem)
     shell_list = []
     shell_list.append(sh_flag)
@@ -147,13 +151,13 @@ def _infercnv(cell_anno, sdas_conf, outdir):
     anno_file = os.path.basename(cell_anno)
     anno_file = re.sub(r'.h5ad','',anno_file)
     cnv_sh = f'{outdir}/infercnv/shell/infercnv.sh'
-    sh_code = f'{sdas_conf["SDAS_software"]} dataProcess h5ad2rds -i {cell_anno} -o {outdir}/infercnv/result && \\\n'
+    sh_code = f'{sdas_conf["SDAS_software"]} dataProcess h5ad2rds -i {cell_anno} -o {outdir}/infercnv/result > {cnv_sh}.log 2> {cnv_sh}.e\n'
     sh_code += f'{sdas_conf["SDAS_software"]} infercnv -i {outdir}/infercnv/result/{anno_file}.rds --h5ad {cell_anno} '
     for p in sdas_conf.keys():
         if p.startswith('infercnv_'):
             pras = p.split('_',1)
             sh_code += f'--{pras[1]} {sdas_conf[p]} '
-    sh_code += f'-o {outdir}/infercnv/result && \\'
+    sh_code += f'-o {outdir}/infercnv/result'
     sh_flag = outshell(cnv_sh, sh_code, cpu, mem)
     shell_list = []
     shell_list.append(sh_flag)
@@ -176,14 +180,18 @@ def _CCI(cell_anno, sdas_conf, outdir):
     anno_file = re.sub(r'.h5ad','',anno_file)
     method = sdas_conf['CCI_method']
     cci_sh = f'{outdir}/cci/shell/cci_{method}.sh'
-    sh_code = f'{sdas_conf["SDAS_software"]} dataProcess h5ad2rds -i {cell_anno} -o {outdir}/cci/result && \\\n'
+    sh_code = f'{sdas_conf["SDAS_software"]} dataProcess h5ad2rds -i {cell_anno} -o {outdir}/cci/result > {cci_sh}.log 2> {cci_sh}.e\n'
     sh_code += f'{sdas_conf["SDAS_software"]} CCI {method} -i {outdir}/cci/result/{anno_file}.rds '
     for p in sdas_conf.keys():
         if p.startswith('CCI_') or p.startswith(f'{method}_'):
             if p != 'CCI_method':
                 pras = p.split('_',1)
-                sh_code += f'--{pras[1]} {sdas_conf[p]} '
-    sh_code += f'-o {outdir}/cci/result && \\'
+                if p == 'cellchat_add_spacial':
+                    if sdas_conf[p].upper() != 'FALSE':
+                        sh_code += f'--{pras[1]} '
+                else:
+                    sh_code += f'--{pras[1]} {sdas_conf[p]} '
+    sh_code += f'-o {outdir}/cci/result '
     sh_flag = outshell(cci_sh, sh_code, cpu, mem)
     shell_list = []
     shell_list.append(sh_flag)
@@ -197,14 +205,14 @@ def _trajectory(cell_anno, sdas_conf, outdir):
     anno_file = re.sub(r'.h5ad','',anno_file)
     method = sdas_conf['trajectory_method']
     traj_sh = f'{outdir}/trajectory/shell/trajectory_{method}.sh'
-    sh_code = f'{sdas_conf["SDAS_software"]} dataProcess h5ad2rds -i {cell_anno} -o {outdir}/trajectory/result && \\\n'
+    sh_code = f'{sdas_conf["SDAS_software"]} dataProcess h5ad2rds -i {cell_anno} -o {outdir}/trajectory/result > {traj_sh}.log 2> {traj_sh}.e\n'
     sh_code += f'{sdas_conf["SDAS_software"]} trajectory {method} -i {outdir}/trajectory/result/{anno_file}.rds '
     for p in sdas_conf.keys():
         if p.startswith('trajectory_') or p.startswith(f'{method}_'):
             if p != 'trajectory_method':
                 pras = p.split('_',1)
                 sh_code += f'--{pras[1]} {sdas_conf[p]} '
-    sh_code += f'-o {outdir}/trajectory/result && \\'
+    sh_code += f'-o {outdir}/trajectory/result '
     sh_flag = outshell(traj_sh, sh_code, cpu, mem)
     shell_list = []
     shell_list.append(sh_flag)
@@ -213,7 +221,7 @@ def _trajectory(cell_anno, sdas_conf, outdir):
 def _deg(st_domain, sdas_conf, outdir):
     os.system(f'mkdir -p {outdir}/deg/shell {outdir}/deg/result')
     cpu = 1
-    mem = 2
+    mem = 10
     diff_plans = sdas_conf['deg_plan'].split(';')
     diff_plan_file = open(f'{outdir}/deg/result/diff_plan.csv','w')
     diff_plan_file.write('\n'.join(diff_plans))
@@ -225,7 +233,7 @@ def _deg(st_domain, sdas_conf, outdir):
             if p != 'deg_plan':
                 pras = p.split('_',1)
                 deg_code += f'--{pras[1]} {sdas_conf[p]} '
-    deg_code += f'-o {outdir}/deg/result && \\'
+    deg_code += f'-o {outdir}/deg/result '
     sh_flag = outshell(deg_sh, deg_code, cpu, mem)
     shell_list = []
     shell_list.append(sh_flag)
@@ -233,7 +241,7 @@ def _deg(st_domain, sdas_conf, outdir):
     return diff_dir,shell_list
 
 def _degEnrich(deg_result_dir, sdas_conf, outdir):
-    os.system(f'mkdir -p {outdir}/geneEnrichment/shell {outdir}/geneEnrichment/result')
+    os.system(f'mkdir -p {outdir}/geneEnrichment/shell {outdir}/geneEnrichment/result/deg_enrich')
     cpu = 1
     mem = 2
     paras = ''
@@ -245,14 +253,14 @@ def _degEnrich(deg_result_dir, sdas_conf, outdir):
 for dif in $(ls {deg_result_dir}/*.deg_filtered.csv)
 do
     filename=$(basename "$dif" .deg_filtered.csv)
-    {sdas_conf["SDAS_software"]} geneSetEnrichment enrichr -i $dif {paras} -o {outdir}/geneEnrichment/result/$filename
+    {sdas_conf["SDAS_software"]} geneSetEnrichment enrichr -i $dif {paras} -o {outdir}/geneEnrichment/result/deg_enrich/$filename
 done
 '''
     enrich_shell += f'''
 for dif in $(ls {deg_result_dir}/*.deg.csv)
 do
     filename=$(basename "$dif" .deg.csv)
-    {sdas_conf["SDAS_software"]} geneSetEnrichment prerank -i $dif {paras} -o {outdir}/geneEnrichment/result/$filename
+    {sdas_conf["SDAS_software"]} geneSetEnrichment prerank -i $dif {paras} -o {outdir}/geneEnrichment/result/deg_enrich/$filename
 done
 '''
     enrich_file = f'{outdir}/geneEnrichment/shell/deg_enrich.sh'
@@ -262,7 +270,7 @@ done
     return shell_list
 
 def _gsea(st_domain, sdas_conf, outdir):
-    os.system(f'mkdir -p {outdir}/geneEnrichment/shell {outdir}/geneEnrichment/result')
+    os.system(f'mkdir -p {outdir}/geneEnrichment/shell {outdir}/geneEnrichment/result/gsea')
     cpu = 1
     mem = 2
     gsea_plans = sdas_conf['gsea_plan'].split(';')
@@ -276,14 +284,20 @@ def _gsea(st_domain, sdas_conf, outdir):
             if p != 'gsea_plan':
                 pras = p.split('_',1)
                 sh_code += f'--{pras[1]} {sdas_conf[p]} '
-    sh_code += f'-o {outdir}/geneEnrichment/result && \\'
+            else:
+                gsea_plans = sdas_conf[p].split(';')
+                for gsp in gsea_plans:
+                    if len(gsp.split(',')) == 3:
+                        cpu = 10
+                        mem = 100
+    sh_code += f'-o {outdir}/geneEnrichment/result/gsea'
     sh_flag = outshell(gsea_sh, sh_code, cpu, mem)
     shell_list = []
     shell_list.append(sh_flag)
     return shell_list
 
 def _gsva(st_domain, sdas_conf, outdir):
-    os.system(f'mkdir -p {outdir}/geneEnrichment/shell {outdir}/geneEnrichment/result')
+    os.system(f'mkdir -p {outdir}/geneEnrichment/shell {outdir}/geneEnrichment/result/gsva')
     cpu = 1
     mem = 2
     gsva_plans = sdas_conf['gsva_plan'].split(';')
@@ -299,7 +313,7 @@ def _gsva(st_domain, sdas_conf, outdir):
             if p != 'gsva_plan':
                 pras = p.split('_',1)
                 sh_code += f'--{pras[1]} {sdas_conf[p]} '
-    sh_code += f'-o {outdir}/geneEnrichment/result && \\'
+    sh_code += f'-o {outdir}/geneEnrichment/result/gsva '
     sh_flag = outshell(gsva_sh, sh_code, cpu, mem)
     shell_list = []
     shell_list.append(sh_flag)

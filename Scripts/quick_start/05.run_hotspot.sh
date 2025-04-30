@@ -1,8 +1,8 @@
 #!/bin/bash
 
-tool_dir=../../SDAS_beta
+tool_dir=../../SDAS_beta_v2504
 binsize=100
-h5ad_file=../../Test_data/single_slice/sample_standard.h5ad
+h5ad_file=../../Test_data/single_slice/sample.h5ad
 output_dir=../../output/hotspot
 
 

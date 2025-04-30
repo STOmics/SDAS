@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tool_dir=../../SDAS_beta
+tool_dir=../../SDAS_beta_v2504
 ref_file=../../Test_data/single_slice/sample_ref.h5ad
 output_dir=../../output/cell2location_ref
 

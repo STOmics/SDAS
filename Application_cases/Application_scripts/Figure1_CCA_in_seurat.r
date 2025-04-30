@@ -1,23 +1,17 @@
 library(Seurat)
 library(dplyr)
 library(ggplot2)
-library(HDF5Array)
-library(glmGamPoi)
-library(zellkonverter)
-library(rhdf5)
 library(data.table)
 library(stringr)
 library(repr)
 
 # data dir
-input.file <- "../Application_test_data/stereo_bin100_standard.h5ad"
+#input.file <- "/storeData/USER/data/02.Bioinformatics_for_STOmics/01.user/qiuying/05.SDAS/00.data/01.paper_data/CRC_NC/sdas_rerun_beta2_20250421/rawdata/stereo_bin100.rds"
+input.file <- "../Application_test_data/stereo_bin100.rds"
 output.dir <- getwd()
 
-# load spatial RNA data from h5ad
-sce_RNA <- readH5AD(input.file, use_hdf5 = TRUE, version = '0.9.2', raw = TRUE)
-sce_RNA@assays@data$X <- as.matrix(sce_RNA@assays@data$X)
-sce_RNA <- as.Seurat(sce_RNA, counts = "X", data = NULL)
-sce_RNA = RenameAssays(object = sce_RNA, originalexp = 'RNA')
+# load spatial RNA data from rds
+sce_RNA <- readRDS(input.file)
 
 # spit by sample id
 seurat_list <- SplitObject(sce_RNA, split.by = "id")
@@ -51,6 +45,15 @@ print(seurat_int@assays$integrated@data[1:5,1:5])
 print(seurat_int@meta.data[1:5,])
 
 saveRDS(seurat_int,  paste0(output.dir, "/seurat_int_logTotal_10000.rds"))
+
+# create a temporary folder
+tmp_folder <- paste0(output.dir, "/tmp")
+if (!dir.exists(tmp_folder)) {
+  dir.create(tmp_folder)
+  cat("Folder", tmp_folder, "has been created successfully.\n")
+} else {
+  cat("Folder", tmp_folder, "already exists.\n")
+}
 
 # Save expression data and obs, which will be loaded in python 
 file1 <- paste0(output.dir, '/tmp/counts.csv')

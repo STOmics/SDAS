@@ -1,7 +1,7 @@
 #!/bin/bash
 
-tool_dir=../../SDAS_beta
-csv_file=../../output/DEG/3.vs.8.deg_filtered.csv # need to use the differential genes
+tool_dir=../../SDAS_beta_v2504
+csv_file=../../output/DEG/3.vs.8.wilcoxon.deg_filtered.csv # need to use the differential genes
 output_dir=../../output/enrichr
 
 

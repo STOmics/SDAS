@@ -1,8 +1,8 @@
 #!/bin/bash
 
-tool_dir=../../SDAS_beta
+tool_dir=../../SDAS_beta_v2504
 binsize=100
-h5ad_file=../../output/graphST/sample_standard_graphst.h5ad
+h5ad_file=../../output/graphST/sample_graphst.h5ad
 output_dir=../../output/DEG
 deg_plan=../../Test_data/single_slice/deg_plan.csv
 

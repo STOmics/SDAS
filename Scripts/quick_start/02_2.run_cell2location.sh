@@ -1,12 +1,12 @@
 #!/bin/bash
 
-tool_dir=../../SDAS_beta
-h5ad_file=../../Test_data/single_slice/sample_standard.h5ad
+tool_dir=../../SDAS_beta_v2504
+h5ad_file=../../Test_data/single_slice/sample.h5ad
 output_dir=../../output/cell2location
 ref_csv=../../output/cell2location_ref/sample_ref_inf_aver.csv
 binsize=100
 
 
-#GPU： 
+#GPU: 
 #firstly, use nvidia-smi to check the avalability of gpu, then decide the index of gpu to use
-${tool_dir}/SDAS cellAnnotation cell2location -i $h5ad_file -o $output_dir --reference_csv $ref_csv --bin_size $binsize --gpu_id 0
+${tool_dir}/SDAS cellAnnotation cell2location -i $h5ad_file -o $output_dir --reference_csv $ref_csv --bin_size $binsize --input_gene_symbol_key _index --gpu_id 0
